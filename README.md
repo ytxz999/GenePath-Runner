@@ -98,7 +98,7 @@ docker run --rm -p 8080:8080 -v genepath-data:/data genepath-runner:0.4.0
 
 镜像基于 Alpine，`CGO_ENABLED=0` 静态编译（SQLite 驱动是纯 Go 实现），以非 root 用户运行，带 `HEALTHCHECK`，数据落在 `/data`。
 
-> 说明：本机开发环境的 Docker daemon 不可用，因此镜像构建与容器冒烟由 `.github/workflows/ci.yml` 的 `docker` job 在 CI 上执行；见 [docs/testing.md](docs/testing.md) 的「验证范围」一节。
+> 说明：本机开发环境的 Docker daemon 不可用，镜像构建与容器冒烟改由 `.github/workflows/ci.yml` 的 `docker` job 在 GitHub Actions 上执行，已在 [CI run 41069506541](https://github.com/ytxz999/GenePath-Runner/actions/runs/41069506541) 通过（含容器内 `/healthz`、首页、`/api/v1/meta`、`/api/v1/dashboard` 与 404 检查）。
 
 ---
 
@@ -230,7 +230,7 @@ curl -s http://127.0.0.1:8080/api/v1/runs/run_xxxx/manifest.json | jq .data_vers
   "organism": "hsapiens",
   "input_genes": ["RAD51", "BRCA1", "ATM", "CHEK2", "TP53", "MDM2"],
   "parameters": { "sources": ["GO:BP","KEGG"], "significance": 0.05, "correction": "g_SCS", "background": "annotated" },
-  "data_source": "g:Profiler REST",
+  "data_source": "g:Profiler",
   "data_version": "e114_eg62_p19_9dc92ac8",
   "created_at": "2026-10-30T21:15:00+08:00",
   "request_snapshot": { "organism": "hsapiens", "query": ["RAD51", "..."], "sources": ["GO:BP"], "user_threshold": 0.05 },
@@ -239,7 +239,7 @@ curl -s http://127.0.0.1:8080/api/v1/runs/run_xxxx/manifest.json | jq .data_vers
 }
 ```
 
-`request_snapshot` / `response_snapshot` 是**原样快照**。响应过大（> 2 MB）时不会内联，而是写上 `{"artifact": "response.json", "sha256": "...", "bytes": ...}` 指向归档文件，manifest 里写明原因。
+`artifacts` 列出该次运行的 5 个归档文件中的 4 个：manifest 无法包含自身的哈希，故不列自己。`request_snapshot` / `response_snapshot` 是**原样快照**。响应过大（> 2 MB）时不会内联，而是写上 `{"artifact": "response.json", "sha256": "...", "bytes": ...}` 指向归档文件，manifest 里写明原因。
 
 **回看 vs 重跑**：打开一条历史运行看到的是当时存档（数据库 + 归档文件），不会重新请求上游；"重新运行"会生成一条**新**记录，使用当时的输入与参数，但结果取决于上游当前的数据版本。报告里对此有明确说明。
 

@@ -1,4 +1,4 @@
-# 测试与验证记录
+﻿# 测试与验证记录
 
 本文记录"哪些行为被自动化测试覆盖、哪些是手动验证的、哪些没有验证"。
 所有数字都来自本仓库的实际执行，不是估算。
@@ -141,8 +141,34 @@ ok  genepath/internal/service           5.0s
 | `go test ./...` | 本机通过 |
 | 真实 g:Profiler 调用 | 本机通过（见上表） |
 | 进程重启后的持久化 | 本机通过 |
-| Docker 镜像构建 | **未在本机验证**（本机 Docker daemon 不可用），已配置在 CI 的 `docker` job |
-| 容器冒烟测试（healthz / 首页 / meta / 404） | **未在本机验证**，同上 |
-| GitHub Actions | 推送后由 GitHub 执行；结果以仓库 Actions 页面为准 |
+| Docker 镜像构建 | 本机 Docker daemon 不可用；**已在 GitHub Actions 上验证**（run 41069095516 / 41069506541，`build, vet and test` 与 `docker image and smoke test` 均 success） |
+| 容器冒烟测试（healthz / 首页 / meta / dashboard / 404） | 在 CI 容器内通过，见 `.github/workflows/ci.yml` 的 smoke test 步骤 |
+| GitHub Actions | 两个 job 均通过：<https://github.com/ytxz999/GenePath-Runner/actions> |
 | 并发压力测试 | 未做（只有队列语义与"恰好一次"的单元测试） |
 | 长时间运行 / 内存泄漏 | 未做 |
+
+---
+
+## 6. 干净环境验收（2026-10-30）
+
+不复用开发目录，而是把 **已提交的 HEAD** 导出到系统临时目录重新构建，用全新的数据库与产物目录跑一遍真实链路。
+
+```bash
+git archive HEAD -o %TEMP%\genepath-accept\src.zip
+# 解压后
+go build -trimpath -o bin/genepath.exe ./cmd/server     # 26,341,376 bytes
+./bin/genepath.exe -addr 127.0.0.1:8095 -db data/clean.db -artifacts data/artifacts -seed=false
+```
+
+结果：
+
+| 检查项 | 实际值 |
+| --- | --- |
+| 提交（数字阈值 `0.05`） | `201`，`run_204f230528f5`，`queued` |
+| 完成后状态 | `succeeded` / `enriched`，111 条，映射 6/6 |
+| 上游 | HTTP 200，`e114_eg62_p19_9dc92ac8`，3814 ms，请求 234 B / 响应 85947 B |
+| 输入哈希 | `bab8f9850e06f38345c4dd9cab525f4d4fb5b637a3b48efd34251dd3bce015ff`，与开发库中同基因集的 `run_5028502f1ddc` **完全一致** |
+| 产物 | `request.json` 234 B、`response.json` 85947 B、`report.html` 45170 B、`report.md` 11241 B、`manifest.json` 137956 B |
+| 数据库哈希 vs 磁盘哈希 | 5/5 一致（如 `report.html` = `5510d5a550098824…`） |
+| 杀进程重启后 | 运行仍为 `succeeded`/`enriched`，111 条，下载的 `report.html` 与磁盘文件 SHA-256 相同 |
+| `manifest.json` | `run_id` / `input_hash` / `organism` / `input_genes` / `parameters` / `data_source` / `data_version` / `created_at` / `request_snapshot` / `response_snapshot` 齐全，`artifacts` 4 条（manifest 不含自身） |
