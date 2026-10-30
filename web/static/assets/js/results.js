@@ -1,4 +1,4 @@
-/* GenePath Runner — analysis result page. */
+﻿/* GenePath Runner — analysis result page. */
 (function () {
   "use strict";
 
@@ -60,7 +60,7 @@
       metaPill("flask", ui.escapeHtml(run.id)),
       metaPill("gene", ui.escapeHtml(ui.organismLabel(run.organism)) + " · " + run.geneCount + " 个基因"),
       metaPill("clock", duration),
-      metaPill("database", ui.escapeHtml(run.dataVersion || "数据集版本未记录")),
+      metaPill("database", ui.escapeHtml(run.dataVersion || "数据源版本未记录")),
       metaPill("target", ui.fmtDateTime(run.createdAt)),
     ];
     if (run.httpStatus) {
@@ -557,7 +557,7 @@
       renderSourceChips();
       renderTable();
       renderAside();
-      $("navRunCount").textContent = "—";
+      ui.syncNavCount();
       if (!isActive()) {
         polls = 0;
         loadArtifacts();

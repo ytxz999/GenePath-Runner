@@ -33,7 +33,7 @@ func main() {
 		dbPath    = flag.String("db", envOr("GENEPATH_DB", cfg.DBPath), "SQLite 数据库文件路径")
 		seed      = flag.Bool("seed", cfg.SeedDemo, "首次启动时写入演示数据集")
 		dev       = flag.Bool("dev", false, "开发模式：更长的日志与更宽松的 CSP")
-		version   = flag.String("version", "0.2.0", "版本号，显示在页脚与健康检查中")
+		version   = flag.String("version", "0.4.0", "版本号，显示在页脚与健康检查中")
 		endpoint  = flag.String("provider-endpoint", envOr("GPROFILER_ENDPOINT", gprofiler.DefaultEndpoint), "g:Profiler 接口地址")
 		workers   = flag.Int("workers", envInt("GENEPATH_WORKERS", 2), "并行执行分析任务的 worker 数量")
 		timeout   = flag.Duration("provider-timeout", envDuration("GENEPATH_PROVIDER_TIMEOUT", 90*time.Second), "单个分析任务调用 g:Profiler 的超时时间")

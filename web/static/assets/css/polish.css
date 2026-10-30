@@ -1,0 +1,210 @@
+﻿
+/* --------------------------- phase 4: final polish ------------------------ */
+
+/* A page should arrive, not pop. 180ms, no layout shift, disabled when the
+   visitor asked for reduced motion. */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.page-head,
+.content > .card,
+.content > .split,
+.content > .dash-grid,
+.content > .result-grid {
+  animation: page-in 200ms var(--ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-head,
+  .content > .card,
+  .content > .split,
+  .content > .dash-grid,
+  .content > .result-grid {
+    animation: none;
+  }
+}
+
+/* KPI cards carry three lines of text; on a phone the default padding eats
+   the whole screen, so keep the rhythm but tighten the box. */
+@media (max-width: 430px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .kpi {
+    padding: 13px 12px 12px;
+  }
+
+  .kpi__label {
+    font-size: 11.5px;
+    gap: 5px;
+  }
+
+  .kpi__value {
+    font-size: 25px;
+    margin-top: 6px;
+  }
+
+  .kpi__foot {
+    font-size: 10.5px;
+    line-height: 1.45;
+  }
+
+  .kpi__foot svg {
+    display: none;
+  }
+}
+
+/* The 14-day axis cannot hold 14 labels on a phone: keep the two ends, which
+   is enough to read the window, and drop the rest entirely. */
+@media (max-width: 620px) {
+  .activity__axis {
+    justify-content: space-between;
+  }
+
+  .activity__axis span {
+    flex: 0 0 auto;
+  }
+
+  .activity__axis span:not(:first-child):not(:last-child) {
+    display: none;
+  }
+
+  /* Dashboard "鏈€杩戣繍琛? keeps task + status; the rest lives in /history. */
+  .table--compact th:nth-child(n + 3),
+  .table--compact td:nth-child(n + 3) {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .hero-strip h3 {
+    font-size: var(--fs-lg);
+  }
+
+  .card__footer {
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .card__footer .pagination__spacer {
+    display: none;
+  }
+
+  .card__footer #submitHint,
+  .card__footer .footer-hint {
+    flex-basis: 100%;
+    order: 3;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar__eyebrow {
+    display: none;
+  }
+
+  .topbar h1 {
+    font-size: 15px;
+  }
+
+  .topbar__actions {
+    gap: 6px;
+  }
+
+  .footer__upstream {
+    display: none;
+  }
+
+  .check-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .term-chart__row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 10px;
+  }
+
+  .term-chart__name {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.4;
+  }
+
+  .term-chart__value {
+    align-self: end;
+  }
+}
+
+/* Tables: drop the columns that only make sense on a wide screen instead of
+   letting them hang off the card edge. Once the extras are gone the table no
+   longer needs its desktop min-width, so it fits without a hidden scrollbar. */
+@media (max-width: 900px) {
+  .history-table th:nth-child(3),
+  .history-table td:nth-child(3),
+  .history-table th:nth-child(4),
+  .history-table td:nth-child(4),
+  .history-table th:nth-child(7),
+  .history-table td:nth-child(7),
+  .history-table th:nth-child(8),
+  .history-table td:nth-child(8),
+  .results-table th:nth-child(3),
+  .results-table td:nth-child(3) {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .history-table th:nth-child(5),
+  .history-table td:nth-child(5),
+  .history-table th:nth-child(6),
+  .history-table td:nth-child(6),
+  .results-table th:nth-child(1),
+  .results-table td:nth-child(1),
+  .results-table th:nth-child(5),
+  .results-table td:nth-child(5) {
+    display: none;
+  }
+}
+
+@media (max-width: 620px) {
+  /* The whole row is a link, so the trailing action cell can go. */
+  .history-table th:nth-child(10),
+  .history-table td:nth-child(10) {
+    display: none;
+  }
+
+  .history-table td:nth-child(9),
+  .results-table td:nth-child(4) {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 620px) {
+  /* Fixed layout keeps 状态 and 提交时间 from being squeezed by long labels. */
+  .history-table {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  .history-table th:nth-child(2),
+  .history-table td:nth-child(2) {
+    width: 84px;
+  }
+
+  .history-table th:nth-child(9),
+  .history-table td:nth-child(9) {
+    width: 88px;
+    white-space: nowrap;
+  }
+}

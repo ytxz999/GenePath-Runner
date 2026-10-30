@@ -1,0 +1,20 @@
+# Build context hygiene: keep the image small and reproducible.
+.git
+.github
+docs/screens
+artifacts
+data
+bin
+.tmp
+.gopath
+.gocache
+.chrome-*
+.browser
+GenePath-Runner
+*.db
+*.db-shm
+*.db-wal
+*.log
+*.err
+*.exe
+*.test

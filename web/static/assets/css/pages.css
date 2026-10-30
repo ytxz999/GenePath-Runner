@@ -1103,3 +1103,12 @@ tr:hover .row-actions {
     width: 100%;
   }
 }
+
+/* Narrow screens: the wide-screen column rhythm is gone by now (app.css hides
+   the secondary columns), so the tables must stop forcing a horizontal scroll. */
+@media (max-width: 900px) {
+  .results-table,
+  .history-table {
+    min-width: 0;
+  }
+}

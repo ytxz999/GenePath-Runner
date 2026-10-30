@@ -1,4 +1,4 @@
-/* GenePath Runner — dashboard page. */
+﻿/* GenePath Runner — dashboard page. */
 (function () {
   "use strict";
 
@@ -28,12 +28,10 @@
     const s = data.stats;
 
     $("kpiTotal").textContent = ui.fmtNumber(s.total);
-    $("kpiTotalFoot").innerHTML =
-      '<span class="trend trend--up">' +
-      ui.icon("layers", 13) +
-      "</span><span>覆盖 <strong>" +
-      ui.fmtNumber(data.activity.reduce((a, b) => a + b.count, 0)) +
-      " 次</strong>近 14 天提交</span>";
+    const latest = data.recentRuns && data.recentRuns[0];
+    $("kpiTotalFoot").innerHTML = latest
+      ? "<span>最近一次提交 <strong>" + ui.escapeHtml(ui.fmtRelative(latest.createdAt)) + "</strong></span>"
+      : "<span>还没有提交过分析</span>";
 
     $("kpiSuccess").textContent = ui.fmtNumber(s.succeeded);
     $("kpiSuccessFoot").innerHTML = s.total
@@ -50,14 +48,17 @@
     $("kpiFailedFoot").innerHTML =
       "<span>失败 + 中断/取消共 <strong>" + ui.fmtNumber(others) + "</strong> 次</span>";
 
-    $("kpiDuration").textContent = data.avgDurationMs
-      ? ui.fmtDuration(data.avgDurationMs).replace(" s", "")
-      : "—";
-    $("kpiDurationFoot").innerHTML = data.avgDurationMs
-      ? "<span>单位 " +
-        (data.avgDurationMs >= 1000 ? "秒" : "毫秒") +
-        "，仅统计成功任务</span>"
-      : "<span>暂无成功任务可供统计</span>";
+    if (data.avgDurationMs) {
+      const seconds = data.avgDurationMs >= 1000;
+      $("kpiDuration").innerHTML =
+        ui.escapeHtml(
+          ui.fmtDuration(data.avgDurationMs).replace(seconds ? " s" : " ms", "")
+        ) + "<small>" + (seconds ? "s" : "ms") + "</small>";
+      $("kpiDurationFoot").innerHTML = "<span>仅统计成功任务</span>";
+    } else {
+      $("kpiDuration").textContent = "—";
+      $("kpiDurationFoot").innerHTML = "<span>暂无成功任务可供统计</span>";
+    }
 
     if (data.demoDataPresent) {
       $("demoChip").hidden = false;

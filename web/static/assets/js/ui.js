@@ -214,6 +214,7 @@
 
   function initShell() {
     hydrateIcons();
+    syncNavCount();
 
     const sidebar = document.getElementById("sidebar");
     const scrim = document.getElementById("sidebarScrim");
@@ -254,6 +255,27 @@
     });
   }
 
+  /**
+   * Sidebar run counter. Every page shows the same "运行历史" badge, so they all
+   * read it from the same endpoint instead of each page inventing a number.
+   */
+  function syncNavCount() {
+    const el = document.getElementById("navRunCount");
+    const client = global.GP && global.GP.api;
+    if (!el || !client || !client.dashboard) {
+      return;
+    }
+    client
+      .dashboard()
+      .then(function (res) {
+        const total = res && res.stats ? res.stats.total : res && res.total;
+        el.textContent = fmtNumber(total || 0);
+      })
+      .catch(function () {
+        el.textContent = "—";
+      });
+  }
+
   global.GP = global.GP || {};
   global.GP.ui = {
     icon: icon,
@@ -270,6 +292,7 @@
     fmtP: fmtP,
     shortHash: shortHash,
     toast: toast,
+    syncNavCount: syncNavCount,
     initShell: initShell,
   };
 

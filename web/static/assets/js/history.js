@@ -1,4 +1,4 @@
-/* GenePath Runner — run history page. */
+﻿/* GenePath Runner — run history page. */
 (function () {
   "use strict";
 
@@ -148,7 +148,7 @@
       renderPagination();
       $("resultCount").textContent =
         "共 " + ui.fmtNumber(page.total) + " 条记录";
-      $("navRunCount").textContent = ui.fmtNumber(page.total);
+      ui.syncNavCount();
     } catch (err) {
       $("historyBody").innerHTML = emptyRow(
         "无法加载运行记录",

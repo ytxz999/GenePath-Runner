@@ -15,6 +15,7 @@ data/
 
 # headless-browser profiles used for screenshots
 .browser/
+.chrome-*/
 
 # editor / OS noise
 .idea/
@@ -25,22 +26,15 @@ Thumbs.db
 # local run artifacts (logs, screenshots profile)
 server*.log
 server*.err
-.chrome-tmp/
-
 
 # ad-hoc API probes
 probe*.json
 
-
 # local verification clone of this repo
 GenePath-Runner/
-
 
 # generated run artifacts (reports, manifests, raw snapshots)
 artifacts/
 
-# extra headless-browser profiles
-.chrome-tmp*/
-
-# throwaway databases for empty-state screenshots
+# throwaway databases and scratch space for screenshots / capture helper
 .tmp/

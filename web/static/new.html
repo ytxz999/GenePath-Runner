@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="/assets/css/tokens.css" />
     <link rel="stylesheet" href="/assets/css/app.css" />
     <link rel="stylesheet" href="/assets/css/pages.css" />
+    <link rel="stylesheet" href="/assets/css/polish.css" />
     <script src="/assets/js/api.js" defer></script>
     <script src="/assets/js/ui.js" defer></script>
     <script src="/assets/js/new.js" defer></script>
@@ -161,7 +162,7 @@
                     name="genes"
                     spellcheck="false"
                     maxlength="40000"
-                    placeholder="TP53&#10;CDKN1A&#10;BAX&#10;MCM2&#10;… 每行一个基因符号"
+                    placeholder="每行一个基因符号，例如 TP53；也可以直接粘贴 Excel 的一列。&#10;支持逗号、分号、空格分隔，重复项会自动去重。"
                     aria-describedby="genesHint genesError"
                   ></textarea>
                 </div>
@@ -340,7 +341,7 @@
       </main>
 
       <footer class="footer">
-        <span>GenePath Runner <code>v0.3.0</code></span>
+        <span>GenePath Runner <code>v0.4.0</code></span>
         <i class="footer__dot" aria-hidden="true"></i>
         <span>上游 <code>g:Profiler REST</code></span>
         <i class="footer__dot" aria-hidden="true"></i>

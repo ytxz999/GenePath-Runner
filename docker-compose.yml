@@ -1,0 +1,38 @@
+# Run GenePath Runner locally with one command:
+#
+#   docker compose up --build
+#
+# Then open http://localhost:8080. Runs, artifacts and the SQLite database live
+# in the named volume, so `docker compose down` keeps your history and
+# `docker compose down -v` really removes it.
+
+services:
+  genepath:
+    build:
+      context: .
+      args:
+        GO_VERSION: "1.26"
+    image: genepath-runner:0.4.0
+    container_name: genepath
+    ports:
+      - "8080:8080"
+    environment:
+      GENEPATH_ADDR: 0.0.0.0:8080
+      GENEPATH_DB: /data/genepath.db
+      GENEPATH_ARTIFACTS: /data/artifacts
+      GENEPATH_SEED: "false"
+      # Set a shorter timeout when the network to g:Profiler is flaky.
+      GENEPATH_PROVIDER_TIMEOUT: 90s
+      GENEPATH_WORKERS: "2"
+    volumes:
+      - genepath-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  genepath-data:
