@@ -27,3 +27,7 @@ server*.log
 server*.err
 .chrome-tmp/
 
+
+# ad-hoc API probes
+probe*.json
+
