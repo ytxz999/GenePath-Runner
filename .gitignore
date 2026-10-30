@@ -31,3 +31,7 @@ server*.err
 # ad-hoc API probes
 probe*.json
 
+
+# local verification clone of this repo
+GenePath-Runner/
+
