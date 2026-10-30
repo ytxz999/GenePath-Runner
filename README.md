@@ -205,7 +205,7 @@ internal/repository  ├─ 有界队列（满则 503）
 # 提交
 curl -s -X POST http://127.0.0.1:8080/api/v1/runs \
   -H 'Content-Type: application/json' \
-  -d '{"label":"p53 panel","genes":"TP53, BAX, CDKN1A, MDM2, BBC3","organism":"hsapiens","sources":["GO:BP","KEGG"],"significance":0.05,"correction":"g_SCS","background":"annotated"}'
+  -d '{"label":"p53 panel","genes":"TP53, BAX, CDKN1A, MDM2, BBC3","organism":"hsapiens","sources":["GO:BP","KEGG"],"significance": 0.05,"correction":"g_SCS","background":"annotated"}'
 
 # 查询
 curl -s http://127.0.0.1:8080/api/v1/runs/run_xxxx | jq .run.status

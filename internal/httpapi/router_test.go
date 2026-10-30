@@ -180,6 +180,38 @@ func TestMetaDescribesCatalogue(t *testing.T) {
 	}
 }
 
+func TestCreateRunAcceptsQuotedAndBareThreshold(t *testing.T) {
+	cases := []struct {
+		name string
+		body map[string]any
+	}{
+		{name: "quoted", body: map[string]any{"genes": "TP53, BAX", "organism": "hsapiens", "sources": []string{"GO:BP"}, "significance": "0.01"}},
+		{name: "number", body: map[string]any{"genes": "TP53, BAX", "organism": "hsapiens", "sources": []string{"GO:BP"}, "significance": 0.01}},
+		{name: "omitted", body: map[string]any{"genes": "TP53, BAX", "organism": "hsapiens", "sources": []string{"GO:BP"}}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			f := newFixture(t, true)
+			rec := f.do(t, http.MethodPost, "/api/v1/runs", tc.body)
+			if rec.Code != http.StatusCreated {
+				t.Fatalf("status = %d, want 201: %s", rec.Code, rec.Body.String())
+			}
+			run := decode[struct {
+				Params struct {
+					Significance string `json:"significance"`
+				} `json:"params"`
+			}](t, rec)
+			want := "0.05"
+			if tc.name != "omitted" {
+				want = "0.01"
+			}
+			if run.Params.Significance != want {
+				t.Fatalf("significance = %q, want %q", run.Params.Significance, want)
+			}
+		})
+	}
+}
+
 func TestCreateRunRejectsMalformedJSON(t *testing.T) {
 	f := newFixture(t, true)
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/runs", strings.NewReader("{not json"))

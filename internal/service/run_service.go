@@ -50,9 +50,38 @@ type CreateInput struct {
 	Genes        string   `json:"genes"`
 	Organism     string   `json:"organism"`
 	Sources      []string `json:"sources"`
-	Significance string   `json:"significance"`
+	Significance Number   `json:"significance"`
 	Correction   string   `json:"correction"`
 	Background   string   `json:"background"`
+}
+
+// Number is a JSON scalar that may arrive as either a quoted string or a bare
+// number. The web form posts strings ("0.05"), while API clients and curl
+// examples naturally post numbers (0.05); both mean the same thing, and an
+// omitted value stays empty so the service can fall back to its default.
+type Number string
+
+// UnmarshalJSON accepts "0.05", 0.05 and null.
+func (n *Number) UnmarshalJSON(b []byte) error {
+	trimmed := strings.TrimSpace(string(b))
+	if trimmed == "null" {
+		*n = ""
+		return nil
+	}
+	if len(trimmed) >= 2 && trimmed[0] == '"' && trimmed[len(trimmed)-1] == '"' {
+		var s string
+		if err := json.Unmarshal(b, &s); err != nil {
+			return err
+		}
+		*n = Number(strings.TrimSpace(s))
+		return nil
+	}
+	var f float64
+	if err := json.Unmarshal(b, &f); err != nil {
+		return err
+	}
+	*n = Number(trimmed)
+	return nil
 }
 
 // Options configures non-functional aspects of the service.
@@ -180,7 +209,7 @@ func prepare(in CreateInput) (*prepared, error) {
 		}
 	}
 
-	significance := strings.TrimSpace(in.Significance)
+	significance := strings.TrimSpace(string(in.Significance))
 	if significance == "" {
 		significance = catalog.DefaultSignificance
 	}

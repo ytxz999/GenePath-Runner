@@ -53,7 +53,7 @@ curl -s -X POST http://127.0.0.1:8080/api/v1/runs \
 | `genes` | 是 | 换行 / 逗号 / 分号 / 空格分隔，自动去重、大小写不敏感，上限 2000 |
 | `organism` | 是 | 见 `/api/v1/meta`，例如 `hsapiens` |
 | `sources` | 否 | 注释来源列表；省略时用默认来源，传空数组会返回 422 |
-| `significance` | 否 | 0–1 之间，默认 `0.05` |
+| `significance` | 否 | 0–1 之间，默认 `0.05`；字符串 `"0.05"` 与数字 `0.05` 都接受 |
 | `correction` | 否 | `g_SCS`（默认）/ `bonferroni` / `fdr` |
 | `background` | 否 | `annotated`（默认）/ `genome` |
 | `label` | 否 | 任务名称，省略时按物种与基因数自动生成 |

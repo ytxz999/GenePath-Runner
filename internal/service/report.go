@@ -395,7 +395,7 @@ func (s *RunService) Rerun(ctx context.Context, id string) (*dto.RunDetail, erro
 		Genes:        strings.Join(genes, "\n"),
 		Organism:     run.Organism,
 		Sources:      run.Params.Sources,
-		Significance: run.Params.Significance,
+		Significance: Number(run.Params.Significance),
 		Correction:   run.Params.Correction,
 		Background:   run.Params.Background,
 	})
