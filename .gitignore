@@ -1,0 +1,29 @@
+# build artifacts
+bin/
+*.exe
+*.test
+
+# local database
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# go toolchain caches kept inside the repo by the dev sandbox
+.gopath/
+.gocache/
+
+# headless-browser profiles used for screenshots
+.browser/
+
+# editor / OS noise
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# local run artifacts (logs, screenshots profile)
+server*.log
+server*.err
+.chrome-tmp/
+

@@ -1,0 +1,276 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>分析结果 · GenePath Runner</title>
+    <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/assets/css/tokens.css" />
+    <link rel="stylesheet" href="/assets/css/app.css" />
+    <link rel="stylesheet" href="/assets/css/pages.css" />
+    <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/ui.js" defer></script>
+    <script src="/assets/js/results.js" defer></script>
+  </head>
+  <body class="app">
+    <aside class="sidebar" id="sidebar" aria-label="侧边栏">
+      <div class="sidebar__brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+            <path d="M5 3c7 4 7 14 14 18" />
+            <path d="M19 3C12 7 12 17 5 21" />
+            <path d="M8.6 7h6.8M8.6 17h6.8M12 10.2v3.6" />
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>GenePath</strong>
+          <small>Enrichment Runner</small>
+        </span>
+      </div>
+
+      <nav class="nav" aria-label="主导航">
+        <p class="nav__label">工作空间</p>
+        <a class="nav__item" href="/"><i data-icon="dashboard"></i>工作台</a>
+        <a class="nav__item" href="/new"><i data-icon="plus"></i>新建分析</a>
+        <a class="nav__item" href="/history">
+          <i data-icon="history"></i>运行历史
+          <span class="nav__count" id="navRunCount">—</span>
+        </a>
+
+        <p class="nav__label">数据与溯源</p>
+        <a class="nav__item is-active" href="/history?status=succeeded" aria-current="page">
+          <i data-icon="chart"></i>分析结果
+        </a>
+        <a class="nav__item" href="/history?status=failed">
+          <i data-icon="alert"></i>失败记录
+        </a>
+      </nav>
+
+      <div class="sidebar__footer">
+        <div class="provider-card">
+          <div class="provider-card__top">
+            <span class="dot dot--idle" aria-hidden="true"></span>
+            分析执行器已接入
+          </div>
+          <div class="provider-card__meta">
+            <span>数据源 <code>g:Profiler REST</code></span>
+            <span>真实调用 g:Profiler</span>
+          </div>
+        </div>
+        <div class="sidebar__user">
+          <span class="avatar" aria-hidden="true">GP</span>
+          <span>本地工作空间</span>
+        </div>
+      </div>
+    </aside>
+    <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+    <div class="workspace">
+      <header class="topbar">
+        <button class="icon-btn mobile-only" id="menuToggle" aria-label="打开导航">
+          <i data-icon="menu"></i>
+        </button>
+        <div class="topbar__titles">
+          <span class="topbar__eyebrow">运行 <span class="sep">/</span> <span class="crumb-id" id="crumbId">—</span></span>
+          <h1>分析结果</h1>
+        </div>
+        <div class="topbar__actions">
+          <a class="btn btn--secondary" href="/history">
+            <i data-icon="arrowLeft"></i><span>运行历史</span>
+          </a>
+          <a class="btn btn--primary" id="downloadBtn" href="#" hidden>
+            <i data-icon="download"></i><span>下载报告</span>
+          </a>
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="result-head">
+          <div class="result-head__top">
+            <h2 id="runTitle">加载中…</h2>
+            <span id="runStatus"></span>
+            <span id="runDemo" class="badge badge--demo" hidden>演示数据</span>
+          </div>
+          <div class="result-meta" id="runMeta"></div>
+        </div>
+
+        <div id="pageError"></div>
+
+        <section class="stat-strip" aria-label="结果摘要">
+          <div>
+            <div class="k">显著条目</div>
+            <div class="v" id="statTerms">—</div>
+          </div>
+          <div>
+            <div class="k">最强 p 值</div>
+            <div class="v" id="statBestP">—</div>
+          </div>
+          <div>
+            <div class="k">单条最多命中</div>
+            <div class="v" id="statMaxHit">—</div>
+          </div>
+        </section>
+
+        <div class="result-grid mt-14" id="resultGrid">
+          <div class="dash-col">
+            <section class="card" id="chartCard">
+              <div class="card__head">
+                <div>
+                  <div class="card__title">富集强度概览</div>
+                  <div class="card__subtitle">
+                    前 10 个条目，按 −log₁₀(p) 排序；数值越大越显著
+                  </div>
+                </div>
+              </div>
+              <div class="card__body">
+                <div class="term-chart" id="termChart">
+                  <div class="skeleton skeleton-line"></div>
+                  <div class="skeleton skeleton-line"></div>
+                  <div class="skeleton skeleton-line"></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card" id="tableCard">
+              <div class="card__head card__head--bordered">
+                <div>
+                  <div class="card__title">富集结果明细</div>
+                  <div class="card__subtitle">
+                    全部字段均来自上游返回值，GenePath 未重新计算
+                  </div>
+                </div>
+                <div class="card__actions">
+                  <span class="chip" id="termCount">—</span>
+                </div>
+              </div>
+
+              <div class="filter-bar">
+                <div id="sourceChips" class="row wrap gap-6"></div>
+                <input
+                  class="input"
+                  id="termSearch"
+                  type="search"
+                  placeholder="搜索 term 名称或基因"
+                  aria-label="搜索条目"
+                />
+                <span class="filter-bar__spacer"></span>
+                <label class="text-xs muted" for="sortSelect">排序</label>
+                <select class="select" id="sortSelect" aria-label="排序方式">
+                  <option value="p-asc">p 值升序</option>
+                  <option value="p-desc">p 值降序</option>
+                  <option value="hits-desc">命中基因数降序</option>
+                  <option value="name-asc">名称 A→Z</option>
+                </select>
+              </div>
+
+              <div class="table-wrap">
+                <table class="table results-table">
+                  <thead>
+                    <tr>
+                      <th class="col-rank">#</th>
+                      <th>Term</th>
+                      <th>来源</th>
+                      <th class="cell-num">p 值</th>
+                      <th>命中 / 查询</th>
+                      <th>命中基因</th>
+                    </tr>
+                  </thead>
+                  <tbody id="termTableBody">
+                    <tr>
+                      <td colspan="6"><div class="skeleton skeleton-line"></div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <aside class="sticky-aside">
+            <section class="card">
+              <div class="card__head">
+                <div>
+                  <div class="card__title">运行参数</div>
+                  <div class="card__subtitle">记录于提交时刻</div>
+                </div>
+              </div>
+              <div class="card__body">
+                <dl class="summary-list" id="paramList">
+                  <div class="summary-list__row"><dt>显著性阈值</dt><dd>—</dd></div>
+                </dl>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card__head">
+                <div>
+                  <div class="card__title">溯源信息</div>
+                  <div class="card__subtitle">用于复现与审计</div>
+                </div>
+              </div>
+              <div class="card__body">
+                <dl class="summary-list" id="traceList"></dl>
+                <div class="mt-10">
+                  <div class="text-xs muted mb-5">输入哈希 (sha256)</div>
+                  <div class="hash-box">
+                    <span class="dot" aria-hidden="true"></span>
+                    <code id="traceHash">—</code>
+                    <button
+                      class="icon-btn"
+                      id="copyHash"
+                      aria-label="复制哈希"
+                      title="复制哈希"
+                    >
+                      <i data-icon="copy" data-size="13"></i>
+                    </button>
+                  </div>
+                  <div class="mt-10 raw-links" id="rawLinks" hidden>
+                    <a class="link-inline" id="rawBtn" href="#" download>
+                      <i data-icon="download" data-size="13"></i> 原始请求 / 响应
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card__head">
+                <div>
+                  <div class="card__title">审计轨迹</div>
+                  <div class="card__subtitle">运行生命周期事件</div>
+                </div>
+              </div>
+              <div class="card__body">
+                <div class="timeline" id="eventTimeline"></div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card__head">
+                <div>
+                  <div class="card__title">输入基因</div>
+                  <div class="card__subtitle" id="geneCountLabel">—</div>
+                </div>
+              </div>
+              <div class="card__body">
+                <div class="gene-tags" id="geneList"></div>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <span>GenePath Runner <code>v0.2.0</code></span>
+        <i class="footer__dot" aria-hidden="true"></i>
+        <span>上游 <code>g:Profiler REST</code></span>
+        <i class="footer__dot" aria-hidden="true"></i>
+        <span>真实调用 g:Profiler · 结果永久留存</span>
+        <span class="pagination__spacer"></span>
+        <a class="btn btn--ghost btn--sm" href="/healthz" target="_blank" rel="noreferrer">
+          <i data-icon="external" data-size="13"></i>健康检查
+        </a>
+      </footer>
+    </div>
+  </body>
+</html>

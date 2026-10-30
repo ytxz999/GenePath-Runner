@@ -1,0 +1,354 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>新建分析 · GenePath Runner</title>
+    <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/assets/css/tokens.css" />
+    <link rel="stylesheet" href="/assets/css/app.css" />
+    <link rel="stylesheet" href="/assets/css/pages.css" />
+    <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/ui.js" defer></script>
+    <script src="/assets/js/new.js" defer></script>
+  </head>
+  <body class="app">
+    <aside class="sidebar" id="sidebar" aria-label="侧边栏">
+      <div class="sidebar__brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+            <path d="M5 3c7 4 7 14 14 18" />
+            <path d="M19 3C12 7 12 17 5 21" />
+            <path d="M8.6 7h6.8M8.6 17h6.8M12 10.2v3.6" />
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>GenePath</strong>
+          <small>Enrichment Runner</small>
+        </span>
+      </div>
+
+      <nav class="nav" aria-label="主导航">
+        <p class="nav__label">工作空间</p>
+        <a class="nav__item" href="/"><i data-icon="dashboard"></i>工作台</a>
+        <a class="nav__item is-active" href="/new" aria-current="page"
+          ><i data-icon="plus"></i>新建分析</a
+        >
+        <a class="nav__item" href="/history">
+          <i data-icon="history"></i>运行历史
+          <span class="nav__count" id="navRunCount">—</span>
+        </a>
+
+        <p class="nav__label">数据与溯源</p>
+        <a class="nav__item" href="/history?status=succeeded">
+          <i data-icon="chart"></i>分析结果
+        </a>
+        <a class="nav__item" href="/history?status=failed">
+          <i data-icon="alert"></i>失败记录
+        </a>
+      </nav>
+
+      <div class="sidebar__footer">
+        <div class="provider-card">
+          <div class="provider-card__top">
+            <span class="dot dot--idle" aria-hidden="true"></span>
+            分析执行器已接入
+          </div>
+          <div class="provider-card__meta">
+            <span>数据源 <code>g:Profiler REST</code></span>
+            <span>真实调用 g:Profiler</span>
+          </div>
+        </div>
+        <div class="sidebar__user">
+          <span class="avatar" aria-hidden="true">GP</span>
+          <span>本地工作空间</span>
+        </div>
+      </div>
+    </aside>
+    <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+    <div class="workspace">
+      <header class="topbar">
+        <button class="icon-btn mobile-only" id="menuToggle" aria-label="打开导航">
+          <i data-icon="menu"></i>
+        </button>
+        <div class="topbar__titles">
+          <span class="topbar__eyebrow">工作空间 <span class="sep">/</span> 新建</span>
+          <h1>新建分析</h1>
+        </div>
+        <div class="topbar__actions">
+          <a class="btn btn--secondary" href="/history">
+            <i data-icon="history"></i><span>运行历史</span>
+          </a>
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="page-head">
+          <div class="page-head__main">
+            <h2>提交一组基因做富集分析</h2>
+            <p>
+              粘贴基因符号（每行一个，或用逗号、空格分隔），选择物种与注释来源。
+              提交后会生成一条运行记录，包含输入哈希、参数与完整审计轨迹。
+            </p>
+          </div>
+        </div>
+
+        <div class="notice mt-10" role="status">
+          <i data-icon="info"></i>
+          <div>
+            提交后任务进入本地队列，由后台 worker 调用 <strong>g:Profiler REST API</strong>
+            完成富集分析（通常 1～3 秒）。原始请求与响应会完整保存，便于复核。
+            打开结果页后会自动刷新到分析完成。
+          </div>
+        </div>
+
+        <div class="split mt-14">
+          <form class="card" id="analysisForm" novalidate>
+            <div class="card__head card__head--bordered">
+              <div>
+                <div class="card__title">
+                  <i data-icon="flask" data-size="16"></i> 分析定义
+                </div>
+                <div class="card__subtitle">带 * 的字段为必填项</div>
+              </div>
+            </div>
+
+            <div class="card__body pt-16">
+              <div class="form-grid">
+                <div class="field">
+                  <label class="field__label" for="runLabel">任务名称</label>
+                  <input
+                    class="input"
+                    id="runLabel"
+                    name="label"
+                    type="text"
+                    maxlength="80"
+                    placeholder="例如：细胞周期基因集 — HeLa 同步化"
+                    autocomplete="off"
+                  />
+                  <span class="field__hint">留空时后端会使用默认名称。</span>
+                </div>
+
+                <div class="field">
+                  <label class="field__label" for="organism">
+                    物种 <span class="req">*</span>
+                  </label>
+                  <select class="select" id="organism" name="organism">
+                    <option value="hsapiens">人 · Homo sapiens</option>
+                  </select>
+                  <span class="field__hint">物种决定基因符号的匹配规则。</span>
+                </div>
+              </div>
+
+              <div class="field mt-14" id="genesField">
+                <div class="gene-input-head">
+                  <label class="field__label" for="genes">
+                    基因列表 <span class="req">*</span>
+                  </label>
+                  <span class="gene-counter" id="geneCounter">
+                    有效 <strong id="geneValid">0</strong>
+                    <span class="rejected">· 无效 <span id="geneRejected">0</span></span>
+                    <span class="muted">/ 上限 <span id="geneMax">2000</span></span>
+                  </span>
+                </div>
+
+                <div class="textarea-wrap">
+                  <textarea
+                    class="textarea"
+                    id="genes"
+                    name="genes"
+                    spellcheck="false"
+                    maxlength="40000"
+                    placeholder="TP53&#10;CDKN1A&#10;BAX&#10;MCM2&#10;… 每行一个基因符号"
+                    aria-describedby="genesHint genesError"
+                  ></textarea>
+                  <div class="textarea-tools">
+                    <button type="button" class="mini-btn" id="clearGenes">
+                      <i data-icon="trash" data-size="12"></i>清空
+                    </button>
+                    <button type="button" class="mini-btn" id="pasteFocus">
+                      <i data-icon="upload" data-size="12"></i>聚焦输入
+                    </button>
+                  </div>
+                </div>
+
+                <div class="field__error" id="genesError"></div>
+                <span class="field__hint" id="genesHint">
+                  基因符号只允许字母、数字和 <code class="mono">- _ .</code>；
+                  大小写不敏感，重复项会自动去重。支持从 Excel 直接粘贴一列。
+                </span>
+
+                <div class="sample-row">
+                  <span class="text-xs muted align-center">示例基因集：</span>
+                  <button type="button" class="chip" data-sample="cell-cycle">细胞周期调控 · 24 个</button>
+                  <button type="button" class="chip" data-sample="apoptosis">细胞凋亡 · 18 个</button>
+                  <button type="button" class="chip" data-sample="immune">T 细胞活化 · 26 个</button>
+                </div>
+              </div>
+
+              <hr class="divider mt-14" />
+
+              <div class="section-head">
+                <h3>分析参数</h3>
+                <span class="section-head__hint">参数会原样记录，便于复现</span>
+              </div>
+
+              <div class="field">
+                <span class="field__label">注释来源 <span class="req">*</span></span>
+                <div class="check-grid" id="sourcesBox">
+                  <span class="text-sm muted">加载中…</span>
+                </div>
+                <span class="field__hint">至少选择一个；来源越多，请求耗时越长。</span>
+              </div>
+
+              <div class="form-grid form-grid--3 mt-14">
+                <div class="field">
+                  <label class="field__label" for="significance">显著性阈值</label>
+                  <select class="select" id="significance">
+                    <option value="0.05">0.05（常用）</option>
+                    <option value="0.01">0.01</option>
+                    <option value="0.001">0.001</option>
+                    <option value="0.1">0.10</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="correction">多重检验校正</label>
+                  <select class="select" id="correction">
+                    <option value="g_SCS">g:SCS（推荐）</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="background">背景基因集</label>
+                  <select class="select" id="background">
+                    <option value="annotated">仅注释基因</option>
+                    <option value="known">全部已知基因</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="card__footer gap-12">
+              <button type="submit" class="btn btn--primary" id="submitBtn">
+                <i data-icon="arrowRight"></i>提交分析
+              </button>
+              <button type="button" class="btn btn--ghost" id="resetBtn">重置</button>
+              <span class="pagination__spacer"></span>
+              <span class="text-xs muted" id="submitHint">提交后由后台 worker 调用 g:Profiler 分析</span>
+            </div>
+          </form>
+
+          <aside class="sticky-aside">
+            <section class="card">
+              <div class="card__head">
+                <div>
+                  <div class="card__title">提交摘要</div>
+                  <div class="card__subtitle">随输入实时更新</div>
+                </div>
+              </div>
+              <div class="card__body">
+                <dl class="summary-list">
+                  <div class="summary-list__row">
+                    <dt>有效基因</dt>
+                    <dd id="sumGenes">0</dd>
+                  </div>
+                  <div class="summary-list__row">
+                    <dt>重复项</dt>
+                    <dd id="sumDuplicates">0</dd>
+                  </div>
+                  <div class="summary-list__row">
+                    <dt>无效符号</dt>
+                    <dd id="sumRejected">0</dd>
+                  </div>
+                  <div class="summary-list__row">
+                    <dt>物种</dt>
+                    <dd id="sumOrganism">人</dd>
+                  </div>
+                  <div class="summary-list__row">
+                    <dt>注释来源</dt>
+                    <dd id="sumSources">1 个</dd>
+                  </div>
+                  <div class="summary-list__row">
+                    <dt>阈值 / 校正</dt>
+                    <dd id="sumParams">0.05 · g:SCS</dd>
+                  </div>
+                </dl>
+
+                <div class="mt-10">
+                  <div class="text-xs muted mb-5">
+                    输入哈希（sha256，用于识别重复提交）
+                  </div>
+                  <div class="hash-box">
+                    <span class="dot" aria-hidden="true"></span>
+                    <code id="sumHash">等待输入…</code>
+                  </div>
+                </div>
+
+                <div class="notice notice--info mt-10" id="duplicateNotice" hidden>
+                  <i data-icon="info"></i>
+                  <div id="duplicateText"></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card__head">
+                <div>
+                  <div class="card__title">提交后会发生什么</div>
+                  <div class="card__subtitle">当前阶段的实际行为</div>
+                </div>
+              </div>
+              <div class="card__body">
+                <div class="timeline">
+                  <div class="timeline__item timeline__item--success">
+                    <div class="timeline__kind">1 · 校验与入库</div>
+                    <div class="timeline__msg">
+                      服务端重新校验基因符号、去重、计算输入哈希，并写入运行记录。
+                    </div>
+                  </div>
+                  <div class="timeline__item">
+                    <div class="timeline__kind">2 · 入队与执行</div>
+                    <div class="timeline__msg">
+                      任务状态从「排队中」变为「运行中」，worker 用一次 HTTP POST 调用
+                      g:Profiler，并受超时与重试策略约束。
+                    </div>
+                  </div>
+                  <div class="timeline__item">
+                    <div class="timeline__kind">3 · 结果、溯源与报告</div>
+                    <div class="timeline__msg">
+                      返回的条目按上游数值原样入库，同时保存原始 JSON、数据源版本与
+                      HTTP 状态；报告可下载为 Markdown。
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="card card--quiet">
+              <div class="card__body card__body--tight pt-14">
+                <div class="text-xs muted lh-6">
+                  <strong class="text-2">科学诚信提示</strong><br />
+                  GenePath 不重新计算 p 值，也不生成生物学结论。显著条目仅代表
+                  g:Profiler 的统计输出，仍需结合文献与实验验证。
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <span>GenePath Runner <code>v0.2.0</code></span>
+        <i class="footer__dot" aria-hidden="true"></i>
+        <span>上游 <code>g:Profiler REST</code></span>
+        <i class="footer__dot" aria-hidden="true"></i>
+        <span>真实调用 g:Profiler · 结果永久留存</span>
+        <span class="pagination__spacer"></span>
+        <a class="btn btn--ghost btn--sm" href="/healthz" target="_blank" rel="noreferrer">
+          <i data-icon="external" data-size="13"></i>健康检查
+        </a>
+      </footer>
+    </div>
+  </body>
+</html>

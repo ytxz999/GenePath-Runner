@@ -1,0 +1,220 @@
+/* ==========================================================================
+   GenePath Runner — design tokens
+   One palette, one type scale, one spacing scale. Every other stylesheet
+   consumes these variables and never hard-codes a colour.
+   ========================================================================== */
+
+:root {
+  /* Brand: deep navy shell + indigo action colour + teal accent */
+  --navy-950: #070d1e;
+  --navy-900: #0b142a;
+  --navy-850: #101c38;
+  --navy-800: #152345;
+  --navy-700: #1e2f57;
+  --navy-600: #2a3d6b;
+
+  --indigo-700: #2440c2;
+  --indigo-600: #3150dd;
+  --indigo-500: #4a68ef;
+  --indigo-200: #c8d2fa;
+  --indigo-100: #e6ebfd;
+  --indigo-50: #f2f5fe;
+
+  --teal-600: #0a8b8b;
+  --teal-500: #10a3a0;
+  --teal-400: #2dc0b8;
+  --teal-100: #d9f4f1;
+
+  /* Surfaces */
+  --bg: #f5f6f9;
+  --bg-sunken: #eef0f5;
+  --surface: #ffffff;
+  --surface-2: #fbfbfd;
+  --line: #e5e8ef;
+  --line-strong: #d5dae4;
+
+  /* Text */
+  --text: #121a2c;
+  --text-2: #4c5670;
+  --text-3: #7d879b;
+  --text-inv: #eef2fb;
+  --text-inv-2: #9fadc9;
+
+  /* Semantic */
+  --success: #0f7f58;
+  --success-bg: #e2f5ed;
+  --warn: #9a5c07;
+  --warn-bg: #fcf1dd;
+  --danger: #b9362b;
+  --danger-bg: #fbe8e6;
+  --info: #2b46c9;
+  --info-bg: #e8ecfd;
+  --neutral-bg: #eef0f5;
+
+  /* Chart series */
+  --series-1: #3150dd;
+  --series-2: #10a3a0;
+  --series-3: #7c8cf0;
+  --series-4: #48c4bd;
+  --series-5: #9aa7d8;
+
+  /* Shape */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-pill: 999px;
+
+  /* Elevation */
+  --shadow-xs: 0 1px 2px rgba(13, 22, 44, 0.05);
+  --shadow-sm: 0 1px 2px rgba(13, 22, 44, 0.05), 0 6px 16px -12px rgba(13, 22, 44, 0.28);
+  --shadow-md: 0 2px 4px rgba(13, 22, 44, 0.04), 0 14px 34px -18px rgba(13, 22, 44, 0.32);
+  --shadow-pop: 0 18px 46px -20px rgba(9, 16, 36, 0.45);
+
+  /* Layout */
+  --sidebar-w: 248px;
+  --topbar-h: 66px;
+  --content-max: 1240px;
+  --gutter: 28px;
+
+  /* Type */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC",
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SFMono-Regular", "JetBrains Mono", "Cascadia Mono", Consolas,
+    "Liberation Mono", Menlo, monospace;
+
+  --fs-xs: 11.5px;
+  --fs-sm: 12.5px;
+  --fs-base: 14px;
+  --fs-md: 15px;
+  --fs-lg: 17px;
+  --fs-xl: 21px;
+  --fs-2xl: 27px;
+  --fs-3xl: 34px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-fast: 120ms;
+  --dur: 200ms;
+}
+
+/* ------------------------------- reset ---------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "cv05" 1, "ss01" 1;
+}
+
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+dl,
+dd {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+svg {
+  display: block;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+::selection {
+  background: var(--indigo-100);
+  color: var(--indigo-700);
+}
+
+:focus-visible {
+  outline: 2px solid var(--indigo-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* Scrollbars: thin and unobtrusive, matching the workspace feel. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c9cfdc transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #c9cfdc;
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #adb5c7;
+  background-clip: padding-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* A hidden attribute must always win over layout rules such as .notice{display:flex}. */
+[hidden] {
+  display: none !important;
+}

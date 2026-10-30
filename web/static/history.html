@@ -1,0 +1,187 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>运行历史 · GenePath Runner</title>
+    <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/assets/css/tokens.css" />
+    <link rel="stylesheet" href="/assets/css/app.css" />
+    <link rel="stylesheet" href="/assets/css/pages.css" />
+    <script src="/assets/js/api.js" defer></script>
+    <script src="/assets/js/ui.js" defer></script>
+    <script src="/assets/js/history.js" defer></script>
+  </head>
+  <body class="app">
+    <aside class="sidebar" id="sidebar" aria-label="侧边栏">
+      <div class="sidebar__brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+            <path d="M5 3c7 4 7 14 14 18" />
+            <path d="M19 3C12 7 12 17 5 21" />
+            <path d="M8.6 7h6.8M8.6 17h6.8M12 10.2v3.6" />
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>GenePath</strong>
+          <small>Enrichment Runner</small>
+        </span>
+      </div>
+
+      <nav class="nav" aria-label="主导航">
+        <p class="nav__label">工作空间</p>
+        <a class="nav__item" href="/"><i data-icon="dashboard"></i>工作台</a>
+        <a class="nav__item" href="/new"><i data-icon="plus"></i>新建分析</a>
+        <a class="nav__item is-active" href="/history" aria-current="page">
+          <i data-icon="history"></i>运行历史
+          <span class="nav__count" id="navRunCount">—</span>
+        </a>
+
+        <p class="nav__label">数据与溯源</p>
+        <a class="nav__item" href="/history?status=succeeded">
+          <i data-icon="chart"></i>分析结果
+        </a>
+        <a class="nav__item" href="/history?status=failed">
+          <i data-icon="alert"></i>失败记录
+        </a>
+      </nav>
+
+      <div class="sidebar__footer">
+        <div class="provider-card">
+          <div class="provider-card__top">
+            <span class="dot dot--idle" aria-hidden="true"></span>
+            分析执行器已接入
+          </div>
+          <div class="provider-card__meta">
+            <span>数据源 <code>g:Profiler REST</code></span>
+            <span>真实调用 g:Profiler</span>
+          </div>
+        </div>
+        <div class="sidebar__user">
+          <span class="avatar" aria-hidden="true">GP</span>
+          <span>本地工作空间</span>
+        </div>
+      </div>
+    </aside>
+    <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+    <div class="workspace">
+      <header class="topbar">
+        <button class="icon-btn mobile-only" id="menuToggle" aria-label="打开导航">
+          <i data-icon="menu"></i>
+        </button>
+        <div class="topbar__titles">
+          <span class="topbar__eyebrow">工作空间 <span class="sep">/</span> 运行</span>
+          <h1>运行历史</h1>
+        </div>
+        <div class="topbar__actions">
+          <a class="btn btn--primary" href="/new">
+            <i data-icon="plus"></i><span>新建分析</span>
+          </a>
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="page-head">
+          <div class="page-head__main">
+            <h2>全部运行记录</h2>
+            <p>
+              每次提交都会留下不可变的记录：输入哈希、参数、数据源版本与耗时。
+              演示记录带有「演示数据」标记，不会被误当作真实分析。
+            </p>
+          </div>
+          <div class="page-head__actions">
+            <button class="btn btn--secondary" id="refreshBtn">
+              <i data-icon="refresh"></i>刷新
+            </button>
+          </div>
+        </div>
+
+        <div class="history-head">
+          <div class="segmented" id="statusFilter" role="tablist" aria-label="按状态筛选">
+            <button type="button" data-status="" class="is-active">全部</button>
+            <button type="button" data-status="succeeded">已完成</button>
+            <button type="button" data-status="failed">失败</button>
+            <button type="button" data-status="queued">排队中</button>
+            <button type="button" data-status="interrupted">中断</button>
+          </div>
+
+          <div class="input-group">
+            <i data-icon="search"></i>
+            <input
+              class="input"
+              id="searchInput"
+              type="search"
+              placeholder="搜索名称、哈希或运行 ID"
+              aria-label="搜索运行"
+            />
+          </div>
+
+          <select class="select" id="organismFilter" aria-label="按物种筛选">
+            <option value="">全部物种</option>
+          </select>
+
+          <span class="pagination__spacer"></span>
+          <span class="text-sm muted" id="resultCount">加载中…</span>
+        </div>
+
+        <section class="card">
+          <div class="table-wrap">
+            <table class="table history-table">
+              <thead>
+                <tr>
+                  <th>任务</th>
+                  <th>状态</th>
+                  <th>物种</th>
+                  <th class="cell-num">基因</th>
+                  <th class="cell-num">条目</th>
+                  <th>耗时</th>
+                  <th>数据集版本</th>
+                  <th>输入哈希</th>
+                  <th>提交时间</th>
+                  <th aria-label="操作"></th>
+                </tr>
+              </thead>
+              <tbody id="historyBody">
+                <tr>
+                  <td colspan="10"><div class="skeleton skeleton-line"></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="pagination" hidden>
+            <span id="pageInfo"></span>
+            <span class="pagination__spacer"></span>
+            <button class="btn btn--secondary btn--sm" id="prevPage">
+              <i data-icon="arrowLeft" data-size="14"></i>上一页
+            </button>
+            <button class="btn btn--secondary btn--sm" id="nextPage">
+              下一页<i data-icon="arrowRight" data-size="14"></i>
+            </button>
+          </div>
+        </section>
+
+        <div class="notice notice--info mt-14">
+          <i data-icon="info"></i>
+          <div>
+            输入哈希对基因集做规范化后计算（顺序与大小写无关），
+            因此同一组基因用不同顺序粘贴也会得到相同的哈希，可用于识别重复提交。
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <span>GenePath Runner <code>v0.2.0</code></span>
+        <i class="footer__dot" aria-hidden="true"></i>
+        <span>上游 <code>g:Profiler REST</code></span>
+        <i class="footer__dot" aria-hidden="true"></i>
+        <span>真实调用 g:Profiler · 结果永久留存</span>
+        <span class="pagination__spacer"></span>
+        <a class="btn btn--ghost btn--sm" href="/healthz" target="_blank" rel="noreferrer">
+          <i data-icon="external" data-size="13"></i>健康检查
+        </a>
+      </footer>
+    </div>
+  </body>
+</html>
