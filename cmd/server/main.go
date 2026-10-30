@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"syscall"
 	"time"
@@ -28,25 +29,32 @@ func main() {
 	cfg := config.Load()
 
 	var (
-		addr     = flag.String("addr", envOr("GENEPATH_ADDR", cfg.Addr), "HTTP 监听地址")
-		dbPath   = flag.String("db", envOr("GENEPATH_DB", cfg.DBPath), "SQLite 数据库文件路径")
-		seed     = flag.Bool("seed", cfg.SeedDemo, "首次启动时写入演示数据集")
-		dev      = flag.Bool("dev", false, "开发模式：更长的日志与更宽松的 CSP")
-		version  = flag.String("version", "0.2.0", "版本号，显示在页脚与健康检查中")
-		endpoint = flag.String("provider-endpoint", envOr("GPROFILER_ENDPOINT", gprofiler.DefaultEndpoint), "g:Profiler 接口地址")
-		workers  = flag.Int("workers", envInt("GENEPATH_WORKERS", 2), "并行执行分析任务的 worker 数量")
-		timeout  = flag.Duration("provider-timeout", envDuration("GENEPATH_PROVIDER_TIMEOUT", 90*time.Second), "单个分析任务调用 g:Profiler 的超时时间")
+		addr      = flag.String("addr", envOr("GENEPATH_ADDR", cfg.Addr), "HTTP 监听地址")
+		dbPath    = flag.String("db", envOr("GENEPATH_DB", cfg.DBPath), "SQLite 数据库文件路径")
+		seed      = flag.Bool("seed", cfg.SeedDemo, "首次启动时写入演示数据集")
+		dev       = flag.Bool("dev", false, "开发模式：更长的日志与更宽松的 CSP")
+		version   = flag.String("version", "0.2.0", "版本号，显示在页脚与健康检查中")
+		endpoint  = flag.String("provider-endpoint", envOr("GPROFILER_ENDPOINT", gprofiler.DefaultEndpoint), "g:Profiler 接口地址")
+		workers   = flag.Int("workers", envInt("GENEPATH_WORKERS", 2), "并行执行分析任务的 worker 数量")
+		timeout   = flag.Duration("provider-timeout", envDuration("GENEPATH_PROVIDER_TIMEOUT", 90*time.Second), "单个分析任务调用 g:Profiler 的超时时间")
+		artifacts = flag.String("artifacts", envOr("GENEPATH_ARTIFACTS", ""), "报告与清单文件目录（默认：数据库同级的 artifacts/）")
 	)
 	flag.Parse()
 
-	if err := run(*addr, *dbPath, *seed, *dev, *version, *endpoint, *workers, *timeout); err != nil {
+	if err := run(*addr, *dbPath, *seed, *dev, *version, *endpoint, *artifacts, *workers, *timeout); err != nil {
 		log.Fatalf("genepath: %v", err)
 	}
 }
 
-func run(addr, dbPath string, seed, dev bool, version, endpoint string, workers int, timeout time.Duration) error {
+func run(addr, dbPath string, seed, dev bool, version, endpoint, artifactDir string, workers int, timeout time.Duration) error {
 	started := time.Now()
 
+	if artifactDir == "" {
+		artifactDir = filepath.Join(filepath.Dir(dbPath), "artifacts")
+	}
+	if err := os.MkdirAll(artifactDir, 0o755); err != nil {
+		return fmt.Errorf("create artifact directory: %w", err)
+	}
 	db, err := database.Open(dbPath, seed)
 	if err != nil {
 		return err
@@ -59,6 +67,7 @@ func run(addr, dbPath string, seed, dev bool, version, endpoint string, workers 
 		ProviderReady:    true,
 		Client:           gprofiler.New(endpoint),
 		ExecTimeout:      timeout,
+		ArtifactDir:      artifactDir,
 	})
 
 	// The queue owns the background workers; the service only knows how to
@@ -75,6 +84,14 @@ func run(addr, dbPath string, seed, dev bool, version, endpoint string, workers 
 	}
 	if len(recovered) > 0 {
 		log.Printf("恢复 %d 个重启前未开始的任务", len(recovered))
+	}
+
+	// Older databases may carry hashes produced by a previous normalisation.
+	// Repair them once at boot so "the same genes" always means one identity.
+	if fixed, err := svc.Rehash(context.Background()); err != nil {
+		return fmt.Errorf("rehash stored inputs: %w", err)
+	} else if fixed > 0 {
+		log.Printf("已按当前规范化重建 %d 条运行记录的输入哈希", fixed)
 	}
 
 	api := httpapi.NewAPI(db, svc, repo, version, endpoint, started)

@@ -79,9 +79,38 @@
           <a class="btn btn--secondary" href="/history">
             <i data-icon="arrowLeft"></i><span>运行历史</span>
           </a>
-          <a class="btn btn--primary" id="downloadBtn" href="#" hidden>
-            <i data-icon="download"></i><span>下载报告</span>
-          </a>
+          <button class="btn btn--secondary" id="rerunBtn" type="button" hidden>
+            <i data-icon="refresh"></i><span>重新运行</span>
+          </button>
+          <div class="btn-group" id="downloadGroup" hidden>
+            <a class="btn btn--primary" id="downloadBtn" href="#" target="_blank" rel="noopener">
+              <i data-icon="download"></i><span>下载报告</span>
+            </a>
+            <button
+              class="btn btn--primary btn-group__toggle"
+              id="downloadMenuBtn"
+              type="button"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-label="选择报告格式"
+            >
+              <i data-icon="chevronDown"></i>
+            </button>
+            <div class="menu" id="downloadMenu" role="menu" hidden>
+              <a class="menu__item" id="dlHtml" role="menuitem" target="_blank" rel="noopener">
+                HTML 报告<span class="menu__hint">排版完整，可直接打印</span>
+              </a>
+              <a class="menu__item" id="dlMd" role="menuitem">
+                Markdown 报告<span class="menu__hint">纯文本，便于归档</span>
+              </a>
+              <a class="menu__item" id="dlManifest" role="menuitem">
+                manifest.json<span class="menu__hint">复现清单与快照索引</span>
+              </a>
+              <a class="menu__item" id="dlRaw" role="menuitem">
+                原始请求 / 响应<span class="menu__hint">上游原样返回，未重算</span>
+              </a>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -256,12 +285,42 @@
                 <div class="gene-tags" id="geneList"></div>
               </div>
             </section>
+
+            <section class="card" id="artifactCard">
+              <div class="card__head">
+                <div>
+                  <div class="card__title">运行清单</div>
+                  <div class="card__subtitle">随运行一起归档的文件与哈希</div>
+                </div>
+                <span class="chip" id="artifactCount">—</span>
+              </div>
+              <div class="card__body card__body--flush">
+                <ul class="artifact-list" id="artifactList"></ul>
+              </div>
+            </section>
+
+            <section class="card">
+              <div class="card__head">
+                <div>
+                  <div class="card__title">复现与引用</div>
+                  <div class="card__subtitle">这份结果能复现到什么程度</div>
+                </div>
+              </div>
+              <div class="card__body">
+                <ul class="note-list">
+                  <li>输入哈希只覆盖<b>规范化后的基因集合与物种</b>，不含时间戳，因此同一组基因换行序、大小写、粘贴时间都会得到同一个哈希。</li>
+                  <li>本页展示的是<b>存档回看</b>：条目、p 值与命中基因均来自当次 g:Profiler 响应，GenePath 未重算。</li>
+                  <li>“重新运行”会调用一次新的上游请求并<b>生成新的运行记录</b>，不会覆盖这条历史；上游数据源更新后，新结果可能与本页不同。</li>
+                  <li>引用方式：GenePath Runner 运行 <code id="citeRunId">—</code>，数据源 g:Profiler <code id="citeVersion">—</code>（<a class="link-inline" href="https://biit.cs.ut.ee/gprofiler/" target="_blank" rel="noreferrer noopener">biit.cs.ut.ee/gprofiler</a>）。</li>
+                </ul>
+              </div>
+            </section>
           </aside>
         </div>
       </main>
 
       <footer class="footer">
-        <span>GenePath Runner <code>v0.2.0</code></span>
+        <span>GenePath Runner <code>v0.3.0</code></span>
         <i class="footer__dot" aria-hidden="true"></i>
         <span>上游 <code>g:Profiler REST</code></span>
         <i class="footer__dot" aria-hidden="true"></i>

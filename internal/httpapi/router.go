@@ -66,6 +66,11 @@ func NewRouter(api *API, opts RouterOptions) *gin.Engine {
 		g.GET("/runs/:id/results", api.getResults)
 		g.GET("/runs/:id/raw", api.getRaw)
 		g.GET("/runs/:id/report.md", api.reportMarkdown)
+		g.GET("/runs/:id/report.html", api.reportHTML)
+		g.GET("/runs/:id/manifest.json", api.manifestJSON)
+		g.GET("/runs/:id/artifacts", api.listArtifacts)
+		g.GET("/runs/:id/artifacts/:kind", api.downloadArtifact)
+		g.POST("/runs/:id/rerun", api.rerun)
 		g.DELETE("/demo", api.deleteDemo)
 	}
 	registerAPI(r.Group("/api/v1"))

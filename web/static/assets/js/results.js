@@ -74,8 +74,23 @@
     $("runMeta").innerHTML = parts.join("");
 
     const download = $("downloadBtn");
-    download.href = api.reportUrl(run.id);
-    download.hidden = false;
+    download.href = api.reportHtmlUrl(run.id);
+    $("downloadGroup").hidden = false;
+    $("dlHtml").href = api.reportHtmlUrl(run.id);
+    $("dlMd").href = api.reportUrl(run.id);
+    $("dlManifest").href = api.manifestUrl(run.id);
+    $("dlRaw").href = api.rawUrl(run.id);
+    $("citeRunId").textContent = run.id;
+    $("citeVersion").textContent = run.dataVersion || "版本未记录";
+
+    const rerun = $("rerunBtn");
+    rerun.hidden = !(run.status === "succeeded" || run.status === "failed");
+
+    // /runs/<id>#download deep-links straight into the export menu.
+    if (window.location.hash === "#download") {
+      $("downloadMenu").hidden = false;
+      $("downloadMenuBtn").setAttribute("aria-expanded", "true");
+    }
   }
 
   function renderStats() {
@@ -387,6 +402,67 @@
         : "");
   }
 
+  const ARTIFACT_LABEL = {
+    report_html: "HTML 报告",
+    report_md: "Markdown 报告",
+    manifest: "manifest.json",
+    request_json: "请求快照",
+    response_json: "响应快照",
+  };
+
+  function renderArtifacts(items) {
+    const list = $("artifactList");
+    const count = $("artifactCount");
+    if (!list) return;
+
+    if (!items || !items.length) {
+      count.textContent = "0";
+      list.innerHTML =
+        '<li class="artifact-list__empty">这次运行还没有归档文件。报告与清单会在分析成功后自动生成。</li>';
+      return;
+    }
+
+    count.textContent = items.length + " 个";
+    list.innerHTML = items
+      .map(function (item) {
+        const label = ARTIFACT_LABEL[item.kind] || item.kind;
+        return (
+          '<li class="artifact-list__item">' +
+          '<a class="artifact-list__link" href="' +
+          ui.escapeHtml(item.href) +
+          '" download>' +
+          ui.icon("download", 13) +
+          "<span>" +
+          ui.escapeHtml(label) +
+          "</span></a>" +
+          '<span class="artifact-list__meta"><span class="mono">' +
+          ui.escapeHtml(String(item.bytes)) +
+          ' B</span><span class="mono artifact-list__hash" title="' +
+          ui.escapeHtml(item.sha256) +
+          '">' +
+          ui.escapeHtml(String(item.sha256 || "").slice(0, 10)) +
+          "…</span></span></li>"
+        );
+      })
+      .join("");
+  }
+
+  async function loadArtifacts() {
+    try {
+      const res = await api.artifacts(runId);
+      renderArtifacts(res.items);
+    } catch (err) {
+      renderArtifacts([]);
+    }
+  }
+
+  function closeMenu() {
+    const menu = $("downloadMenu");
+    if (!menu) return;
+    menu.hidden = true;
+    $("downloadMenuBtn").setAttribute("aria-expanded", "false");
+  }
+
   function row(key, value, mono) {
     return (
       '<div class="summary-list__row"><dt>' +
@@ -424,6 +500,45 @@
       state.sort = e.target.value;
       renderTable();
     });
+
+    const menuBtn = $("downloadMenuBtn");
+    if (menuBtn) {
+      menuBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const menu = $("downloadMenu");
+        const open = menu.hidden;
+        menu.hidden = !open;
+        menuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      document.addEventListener("click", function (e) {
+        if (!$("downloadGroup").contains(e.target)) closeMenu();
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") closeMenu();
+      });
+      $("downloadMenu").addEventListener("click", function () {
+        closeMenu();
+      });
+    }
+
+    const rerun = $("rerunBtn");
+    if (rerun) {
+      rerun.addEventListener("click", async function () {
+        rerun.disabled = true;
+        const original = rerun.innerHTML;
+        rerun.innerHTML = '<span class="spinner spinner--sm"></span><span>提交中…</span>';
+        try {
+          const created = await api.rerun(runId);
+          ui.toast("success", "已创建新的运行", "原记录保持不变，正在跳到新任务");
+          window.location.href = "/runs/" + encodeURIComponent(created.id);
+        } catch (err) {
+          ui.toast("error", "无法重新运行", err.message);
+          rerun.disabled = false;
+          rerun.innerHTML = original;
+          window.GP.ui.hydrateIcons(rerun);
+        }
+      });
+    }
   }
 
   async function load() {
@@ -443,6 +558,10 @@
       renderTable();
       renderAside();
       $("navRunCount").textContent = "—";
+      if (!isActive()) {
+        polls = 0;
+        loadArtifacts();
+      }
       if (isActive() && polls < 240) {
         polls += 1;
         pollTimer = setTimeout(load, 1600);

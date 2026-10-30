@@ -40,8 +40,10 @@ const fakeProviderBody = `{
 }`
 
 type apiFixture struct {
-	router http.Handler
-	svc    *service.RunService
+	router   http.Handler
+	svc      *service.RunService
+	artifact string
+	upstream string
 }
 
 func newFixture(t *testing.T, attachExecutor bool) *apiFixture {
@@ -60,11 +62,13 @@ func newFixture(t *testing.T, attachExecutor bool) *apiFixture {
 	t.Cleanup(func() { _ = database.Close(db) })
 
 	repo := repository.NewRunRepository(db)
+	artifactDir := filepath.Join(t.TempDir(), "artifacts")
 	svc := service.NewRunService(repo, service.Options{
 		ProviderEndpoint: upstream.URL,
 		ProviderReady:    true,
 		Client:           gprofiler.New(upstream.URL),
 		ExecTimeout:      5 * time.Second,
+		ArtifactDir:      artifactDir,
 	})
 	if attachExecutor {
 		svc.AttachQueue(func(string) error { return nil })
@@ -80,7 +84,7 @@ func newFixture(t *testing.T, attachExecutor bool) *apiFixture {
 		Version:   "0.2.0",
 		PageFiles: pages,
 	})
-	return &apiFixture{router: router, svc: svc}
+	return &apiFixture{router: router, svc: svc, artifact: artifactDir, upstream: upstream.URL}
 }
 
 func (f *apiFixture) do(t *testing.T, method, path string, body any) *httptest.ResponseRecorder {

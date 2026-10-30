@@ -97,6 +97,34 @@
       return BASE + "/runs/" + encodeURIComponent(id) + "/report.md";
     },
 
+    reportHtmlUrl(id) {
+      return BASE + "/runs/" + encodeURIComponent(id) + "/report.html";
+    },
+
+    manifestUrl(id) {
+      return BASE + "/runs/" + encodeURIComponent(id) + "/manifest.json";
+    },
+
+    artifactUrl(id, kind) {
+      return (
+        BASE +
+        "/runs/" +
+        encodeURIComponent(id) +
+        "/artifacts/" +
+        encodeURIComponent(kind)
+      );
+    },
+
+    artifacts(id) {
+      return request(BASE + "/runs/" + encodeURIComponent(id) + "/artifacts");
+    },
+
+    rerun(id) {
+      return request(BASE + "/runs/" + encodeURIComponent(id) + "/rerun", {
+        method: "POST",
+      });
+    },
+
     rawUrl(id) {
       return BASE + "/runs/" + encodeURIComponent(id) + "/raw";
     },

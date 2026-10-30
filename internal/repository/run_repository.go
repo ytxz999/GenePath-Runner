@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"genepath/internal/model"
 )
@@ -400,4 +401,59 @@ func (r *RunRepository) FindByHash(ctx context.Context, hash, organism, excludeI
 		return nil, err
 	}
 	return &run, nil
+}
+
+// UpsertArtifact records (or refreshes) one artifact row. Regenerating a report
+// must not accumulate duplicate rows, so (run_id, kind) is the conflict target.
+func (r *RunRepository) UpsertArtifact(ctx context.Context, a *model.Artifact) error {
+	return r.db.WithContext(ctx).
+		Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "run_id"}, {Name: "kind"}},
+			DoUpdates: clause.AssignmentColumns([]string{"path", "sha256", "size_bytes", "created_at"}),
+		}).
+		Create(a).Error
+}
+
+// Artifacts returns every stored file for a run, ordered by kind so the UI is
+// stable between requests.
+func (r *RunRepository) Artifacts(ctx context.Context, runID string) ([]model.Artifact, error) {
+	var out []model.Artifact
+	err := r.db.WithContext(ctx).
+		Where("run_id = ?", runID).
+		Order("kind ASC").Find(&out).Error
+	return out, err
+}
+
+// Artifact returns one artifact row, or nil when it was never written.
+func (r *RunRepository) Artifact(ctx context.Context, runID, kind string) (*model.Artifact, error) {
+	var a model.Artifact
+	err := r.db.WithContext(ctx).
+		Where("run_id = ? AND kind = ?", runID, kind).First(&a).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
+// All returns every run without pagination. Maintenance jobs (hash upgrades,
+// demo clean-up) use it; request handlers always page.
+func (r *RunRepository) All(ctx context.Context) ([]model.Run, error) {
+	var runs []model.Run
+	err := r.db.WithContext(ctx).Order("created_at ASC").Find(&runs).Error
+	return runs, err
+}
+
+// UpdateInputHash rewrites the stored identity hash of one run.
+func (r *RunRepository) UpdateInputHash(ctx context.Context, id, hash string) error {
+	return r.db.WithContext(ctx).Model(&model.Run{}).
+		Where("id = ?", id).Update("input_hash", hash).Error
+}
+
+// DeleteArtifacts drops the artifact rows of one run so they can be rebuilt.
+func (r *RunRepository) DeleteArtifacts(ctx context.Context, runID string) error {
+	return r.db.WithContext(ctx).Where("run_id = ?", runID).
+		Delete(&model.Artifact{}).Error
 }

@@ -99,3 +99,11 @@ func TestHashIsStableAcrossCalls(t *testing.T) {
 		t.Fatalf("expected a sha256 hex digest, got %d chars", len(first))
 	}
 }
+
+func TestHashIgnoresSymbolCase(t *testing.T) {
+	upper := Hash([]string{"TP53", "MCM2", "BAX"}, "hsapiens")
+	lower := Hash([]string{"tp53", "mcm2", "bax"}, "hsapiens")
+	if upper != lower {
+		t.Fatalf("hash must be case independent: %s != %s", upper, lower)
+	}
+}

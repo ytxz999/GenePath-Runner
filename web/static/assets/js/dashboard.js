@@ -36,10 +36,11 @@
       " 次</strong>近 14 天提交</span>";
 
     $("kpiSuccess").textContent = ui.fmtNumber(s.succeeded);
-    $("kpiSuccessFoot").innerHTML =
-      "<span>成功率 <strong>" +
-      (data.successRate * 100).toFixed(0) +
-      "%</strong></span>";
+    $("kpiSuccessFoot").innerHTML = s.total
+      ? "<span>成功率 <strong>" +
+        (data.successRate * 100).toFixed(0) +
+        "%</strong></span>"
+      : "<span>还没有可统计的运行</span>";
 
     $("kpiFailed").textContent = ui.fmtNumber(s.failed);
     const others =
@@ -201,6 +202,11 @@
 
     const list = $("statusList");
     list.innerHTML = "";
+    if (!total) {
+      list.innerHTML =
+        '<p class="text-sm muted">还没有运行记录，提交第一次分析后这里会出现状态分布。</p>';
+      return;
+    }
     data.statuses.forEach(function (item) {
       if (!item.count) return;
       const row = document.createElement("div");

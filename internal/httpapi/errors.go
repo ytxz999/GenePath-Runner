@@ -22,6 +22,7 @@ const (
 	CodeInternal         = "internal_error"
 	CodeNotReady         = "executor_not_ready"
 	CodeQueueFull        = "queue_full"
+	CodeUnknownArtifact  = "unknown_artifact"
 )
 
 // respondProblem writes the standard error envelope.
@@ -46,6 +47,10 @@ func respondError(c *gin.Context, err error) {
 	}
 	if errors.Is(err, service.ErrQueueFull) {
 		respondProblem(c, http.StatusTooManyRequests, CodeQueueFull, err.Error(), nil)
+		return
+	}
+	if errors.Is(err, service.ErrUnknownArtifact) {
+		respondProblem(c, http.StatusBadRequest, CodeUnknownArtifact, "不支持的文件类型", nil)
 		return
 	}
 	respondProblem(c, http.StatusInternalServerError, CodeInternal, err.Error(), nil)

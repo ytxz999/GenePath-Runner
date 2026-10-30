@@ -35,3 +35,12 @@ probe*.json
 # local verification clone of this repo
 GenePath-Runner/
 
+
+# generated run artifacts (reports, manifests, raw snapshots)
+artifacts/
+
+# extra headless-browser profiles
+.chrome-tmp*/
+
+# throwaway databases for empty-state screenshots
+.tmp/

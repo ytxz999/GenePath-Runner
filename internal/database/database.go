@@ -57,7 +57,7 @@ func Open(path string, seedDemo bool) (*gorm.DB, error) {
 
 // Migrate creates or updates every table. It is safe to call on every boot.
 func Migrate(db *gorm.DB) error {
-	if err := db.AutoMigrate(&model.Run{}, &model.Term{}, &model.RunEvent{}); err != nil {
+	if err := db.AutoMigrate(&model.Run{}, &model.Term{}, &model.RunEvent{}, &model.Artifact{}); err != nil {
 		return fmt.Errorf("migrate schema: %w", err)
 	}
 	return nil

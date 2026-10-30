@@ -13,6 +13,7 @@ import (
 	"genepath/internal/catalog"
 	"genepath/internal/database"
 	"genepath/internal/gene"
+	"genepath/internal/model"
 	"genepath/internal/repository"
 	"genepath/internal/service"
 )
@@ -196,14 +197,14 @@ func (a *API) deleteDemo(c *gin.Context) {
 // reportMarkdown streams a Markdown report rendered from stored rows.
 func (a *API) reportMarkdown(c *gin.Context) {
 	id := c.Param("id")
-	body, err := a.svc.Report(c.Request.Context(), id)
+	body, err := a.svc.ArtifactBytes(c.Request.Context(), id, model.ArtifactMarkdown)
 	if err != nil {
 		respondError(c, err)
 		return
 	}
 	c.Header("Content-Type", "text/markdown; charset=utf-8")
 	c.Header("Content-Disposition", `attachment; filename="genepath-`+id+`.md"`)
-	c.String(http.StatusOK, body)
+	c.String(http.StatusOK, string(body))
 }
 
 func statusFilter(raw string) string {

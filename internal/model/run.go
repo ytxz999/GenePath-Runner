@@ -158,6 +158,31 @@ type RunEvent struct {
 // TableName keeps the SQL readable in logs.
 func (RunEvent) TableName() string { return "run_events" }
 
+// Artifact kinds. Each succeeded run produces a small bundle of files that can
+// be re-read without the database: the raw exchange, a manifest and two reports.
+const (
+	ArtifactRequest  = "request_json"
+	ArtifactResponse = "response_json"
+	ArtifactManifest = "manifest"
+	ArtifactHTML     = "report_html"
+	ArtifactMarkdown = "report_md"
+)
+
+// Artifact is a file on disk that belongs to a run, plus the hash needed to
+// prove later that the bytes did not change.
+type Artifact struct {
+	ID        uint      `gorm:"primaryKey"`
+	RunID     string    `gorm:"size:32;uniqueIndex:idx_artifact_run_kind;not null"`
+	Kind      string    `gorm:"size:24;uniqueIndex:idx_artifact_run_kind;not null"`
+	Path      string    `gorm:"size:512"` // relative to the artifact root
+	SHA256    string    `gorm:"size:64"`
+	Bytes     int       `gorm:"column:size_bytes"`
+	CreatedAt time.Time `gorm:"index"`
+}
+
+// TableName keeps the SQL readable in logs.
+func (Artifact) TableName() string { return "artifacts" }
+
 func splitLines(raw string) []string {
 	if raw == "" {
 		return nil

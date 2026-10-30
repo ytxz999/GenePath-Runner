@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    GenePath Runner — application shell and reusable components
    ========================================================================== */
 
@@ -1547,5 +1547,146 @@ button.chip:hover {
 @media (prefers-reduced-motion: reduce) {
   .spinner {
     animation-duration: 2.4s;
+  }
+}
+
+/* ---------- phase 3: report downloads, artifacts, reuse notes ---------- */
+.btn-group {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.btn-group > .btn:first-child {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.btn-group__toggle {
+  padding-inline: 9px;
+  border-left: 1px solid rgba(255, 255, 255, 0.28);
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  min-width: 268px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-pop);
+}
+
+.menu__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 11px;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.menu__item:hover,
+.menu__item:focus-visible {
+  background: var(--indigo-50);
+  outline: none;
+}
+
+.menu__hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+.artifact-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.artifact-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 18px;
+  border-top: 1px solid var(--line);
+}
+
+.artifact-list__item:first-child {
+  border-top: 0;
+}
+
+.artifact-list__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--indigo-600);
+  text-decoration: none;
+}
+
+.artifact-list__link:hover {
+  text-decoration: underline;
+}
+
+.artifact-list__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.artifact-list__hash {
+  padding: 1px 5px;
+  background: var(--bg-sunken);
+  border-radius: 4px;
+}
+
+.artifact-list__empty {
+  padding: 14px 18px;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+
+.note-list {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 8px;
+  font-size: var(--fs-xs);
+  line-height: 1.65;
+  color: var(--text-2);
+}
+
+.note-list code {
+  font-size: 0.92em;
+}
+
+.spinner--sm {
+  width: 13px;
+  height: 13px;
+  border-width: 2px;
+}
+
+@media (max-width: 640px) {
+  .menu {
+    min-width: 232px;
+  }
+
+  .artifact-list__item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
   }
 }

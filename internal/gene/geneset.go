@@ -109,7 +109,14 @@ func Split(items []string) (valid, invalid []string) {
 // reuse a previous response.
 func Hash(symbols []string, organism string) string {
 	sorted := make([]string, len(symbols))
-	copy(sorted, symbols)
+	for i, s := range symbols {
+		// Upper-casing before hashing keeps the identity case-insensitive,
+		// which is how de-duplication already treats symbols. Upper- rather
+		// than lower-case is deliberate: every human symbol is already upper
+		// case, so hashes recorded before this normalisation existed keep
+		// their value instead of silently changing under stored runs.
+		sorted[i] = strings.ToUpper(strings.TrimSpace(s))
+	}
 	sortStrings(sorted)
 
 	sum := sha256.New()

@@ -62,6 +62,9 @@ type Options struct {
 	Client           *gprofiler.Client
 	ExecTimeout      time.Duration
 	Now              func() time.Time
+	// ArtifactDir is where report and manifest files are written. An empty
+	// value disables persistence and keeps unit tests off the filesystem.
+	ArtifactDir string
 }
 
 // RunService implements run lifecycle, listing, dashboard aggregation, the
@@ -73,6 +76,8 @@ type RunService struct {
 	now      func() time.Time
 	client   *gprofiler.Client
 	timeout  time.Duration
+	// artifactDir is the root directory for per-run files ("" = memory only).
+	artifactDir string
 
 	// enqueue hands a freshly stored run id to the worker queue. It is set by
 	// main after construction so the service never depends on the executor.
@@ -94,12 +99,13 @@ func NewRunService(repo *repository.RunRepository, opts Options) *RunService {
 		timeout = 75 * time.Second
 	}
 	return &RunService{
-		repo:     repo,
-		endpoint: opts.ProviderEndpoint,
-		ready:    opts.ProviderReady,
-		now:      now,
-		client:   client,
-		timeout:  timeout,
+		repo:        repo,
+		endpoint:    opts.ProviderEndpoint,
+		ready:       opts.ProviderReady,
+		now:         now,
+		client:      client,
+		timeout:     timeout,
+		artifactDir: opts.ArtifactDir,
 	}
 }
 
@@ -459,6 +465,11 @@ func (s *RunService) completeRun(ctx context.Context, run *model.Run, resp *gpro
 	if err := s.repo.Finish(ctx, run, terms, events); err != nil {
 		return err
 	}
+	// Best effort: a report that fails to render must never fail the analysis,
+	// and the download path regenerates anything that is missing.
+	if s.artifactDir != "" {
+		_, _ = s.EnsureArtifacts(ctx, run.ID)
+	}
 	return nil
 }
 
@@ -528,6 +539,7 @@ func (s *RunService) Results(ctx context.Context, id string) (*dto.RunResults, e
 		Unmapped:   detail.Unmapped,
 		Duplicates: detail.Duplicates,
 		Events:     detail.Events,
+		Artifacts:  s.artifactInfos(ctx, id),
 		Thresholds: detail.Thresholds,
 		Provider: dto.ProviderInfo{
 			Name:        "g:Profiler",
@@ -563,6 +575,7 @@ func (s *RunService) Get(ctx context.Context, id string) (*dto.RunDetail, error)
 		return nil, err
 	}
 	detail := toDetail(run, terms, events)
+	detail.Artifacts = s.artifactInfos(ctx, id)
 	previous, err := s.repo.FindByHash(ctx, run.InputHash, run.Organism, run.ID)
 	if err != nil {
 		return nil, err

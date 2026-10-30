@@ -70,6 +70,17 @@ type Threshold struct {
 	Threshold     float64 `json:"threshold"`
 }
 
+// ArtifactInfo describes one stored file so the UI can link to it and show the
+// hash that makes the record auditable.
+type ArtifactInfo struct {
+	Kind      string    `json:"kind"`
+	Label     string    `json:"label"`
+	Bytes     int       `json:"bytes"`
+	SHA256    string    `json:"sha256"`
+	Href      string    `json:"href"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
 // RunDetail adds the gene list, enrichment rows and audit trail.
 type RunDetail struct {
 	RunSummary
@@ -78,6 +89,7 @@ type RunDetail struct {
 	Duplicates  []string             `json:"duplicates"`
 	Terms       []Term               `json:"terms"`
 	Events      []Event              `json:"events"`
+	Artifacts   []ArtifactInfo       `json:"artifacts"`
 	Thresholds  map[string]Threshold `json:"thresholds"`
 	DuplicateOf string               `json:"duplicateOf,omitempty"`
 }
@@ -91,8 +103,51 @@ type RunResults struct {
 	Unmapped   []string             `json:"unmapped"`
 	Duplicates []string             `json:"duplicates"`
 	Events     []Event              `json:"events"`
+	Artifacts  []ArtifactInfo       `json:"artifacts"`
 	Thresholds map[string]Threshold `json:"thresholds"`
 	Provider   ProviderInfo         `json:"provider"`
+}
+
+// Manifest is the reproducibility record written next to every run. It contains
+// everything needed to explain how a result was produced: inputs, parameters,
+// provider version and the exact bytes that were sent and received.
+type Manifest struct {
+	Project          string          `json:"project"`
+	SchemaVersion    string          `json:"schema_version"`
+	RunID            string          `json:"run_id"`
+	Label            string          `json:"label"`
+	Status           string          `json:"status"`
+	Outcome          string          `json:"outcome"`
+	InputHash        string          `json:"input_hash"`
+	HashAlgorithm    string          `json:"hash_algorithm"`
+	Organism         string          `json:"organism"`
+	OrganismLabel    string          `json:"organism_label"`
+	InputGenes       []string        `json:"input_genes"`
+	InputGeneCount   int             `json:"input_gene_count"`
+	Parameters       Params          `json:"parameters"`
+	DataSource       string          `json:"data_source"`
+	DataSourceURL    string          `json:"data_source_endpoint"`
+	DataVersion      string          `json:"data_version"`
+	CreatedAt        time.Time       `json:"created_at"`
+	StartedAt        *time.Time      `json:"started_at,omitempty"`
+	FinishedAt       *time.Time      `json:"finished_at,omitempty"`
+	DurationMS       int64           `json:"duration_ms"`
+	HTTPStatus       int             `json:"upstream_http_status"`
+	RequestSnapshot  any             `json:"request_snapshot"`
+	ResponseSnapshot any             `json:"response_snapshot"`
+	ResultCount      int             `json:"result_count"`
+	Mapping          ManifestMapping `json:"mapping"`
+	Artifacts        []ArtifactInfo  `json:"artifacts,omitempty"`
+	Notes            []string        `json:"notes"`
+}
+
+// ManifestMapping records what the provider did with the submitted symbols.
+type ManifestMapping struct {
+	Submitted  int      `json:"submitted"`
+	Mapped     int      `json:"mapped"`
+	Unmapped   []string `json:"unmapped"`
+	Duplicates []string `json:"duplicates"`
+	Message    string   `json:"message"`
 }
 
 // RawExchange is the stored upstream request/response pair for auditing.
