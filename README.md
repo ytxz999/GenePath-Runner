@@ -289,9 +289,9 @@ go test ./... -count=1
 | `internal/executor` | 91.4% |
 | `internal/httpapi` | 78.3% |
 | `internal/provider/gprofiler` | 74.1% |
-| `internal/service` | 66.4% |
+| `internal/service` | 64.7% |
 | `internal/repository` | 21.1% |
-| 全部语句 | **65.8%** |
+| 全部语句 | **65.0%** |
 
 功能测试矩阵、手动验证步骤与"哪些没验证"的说明见 [docs/testing.md](docs/testing.md)。
 

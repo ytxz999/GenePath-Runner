@@ -36,9 +36,9 @@ ok  genepath/internal/service           5.0s
 | `internal/executor` | 91.4% |
 | `internal/httpapi` | 78.3% |
 | `internal/provider/gprofiler` | 74.1% |
-| `internal/service` | 66.4% |
+| `internal/service` | 64.7% |
 | `internal/repository` | 21.1% |
-| 全部 | 65.8% |
+| 全部 | 65.0% |
 
 `config`、`catalog`、`database`、`model`、`cmd/server` 没有独立测试，它们要么是常量/枚举，要么在集成测试里被间接覆盖。
 
