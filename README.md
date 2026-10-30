@@ -26,20 +26,31 @@ GenePath 不重新实现任何富集算法，也不生成生物学结论。它�
 
 ## 2. 快速开始
 
-```bash
-# 1. 构建
-go build -o bin/genepath.exe ./cmd/server      # Windows
-go build -o bin/genepath ./cmd/server          # macOS / Linux
+**Windows（cmd 或 PowerShell）** —— 注意 cmd 里要用反斜杠，且不能用 `#` 写注释：
 
-# 2. 运行（默认 :8080，数据库 data/genepath.db，默认不写任何演示数据）
-./bin/genepath
-
-# 3. 打开
-#    工作台   http://127.0.0.1:8080/
-#    新建分析 http://127.0.0.1:8080/new
-#    运行历史 http://127.0.0.1:8080/history
-#    健康检查 http://127.0.0.1:8080/healthz
+```bat
+go build -o bin\genepath.exe .\cmd\server
+bin\genepath.exe
 ```
+
+**macOS / Linux（bash / zsh）**：
+
+```bash
+go build -o bin/genepath ./cmd/server
+./bin/genepath
+```
+
+> 上面两段请**逐行粘贴**，不要连同 `#` 注释一起复制。把 `go build` 后面跟着的
+> `# Windows` 一起粘进 cmd，Go 会把 `#`、`Windows` 当成额外的包路径，报
+> `malformed import path "#": invalid char '#'`；`./bin/genepath` 是 POSIX 写法，
+> cmd 里要写 `bin\genepath.exe`。
+
+启动后默认监听 `:8080`，数据库在 `data/genepath.db`，首次启动**不写入任何演示数据**。打开：
+
+- 工作台 http://127.0.0.1:8080/
+- 新建分析 http://127.0.0.1:8080/new
+- 运行历史 http://127.0.0.1:8080/history
+- 健康检查 http://127.0.0.1:8080/healthz
 
 第一次打开工作台会看到空状态；去「新建分析」粘贴基因（或点示例基因集）提交，几秒后结果即可查看。
 
