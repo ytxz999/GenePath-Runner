@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    GenePath Runner — page-level composition
    ========================================================================== */
 
@@ -439,15 +439,14 @@
 }
 
 .textarea-wrap .textarea {
-  padding-bottom: 34px;
+  padding-bottom: 12px;
 }
 
 .textarea-tools {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
   display: flex;
+  justify-content: flex-end;
   gap: 6px;
+  margin-top: 8px;
 }
 
 .mini-btn {
